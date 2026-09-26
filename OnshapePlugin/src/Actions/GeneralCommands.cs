@@ -23,7 +23,7 @@ namespace Loupedeck.OnshapePlugin
                 Icon = "mx-accept",
                 Request = new JsonObject { ["type"] = "dialog", ["action"] = "ok" },
                 Shortcut = Shortcut.Parse("enter"),
-                IsActive = s => s.HasDialog,
+                AlwaysBright = true,
             });
 
             // Out of the running tool first, then out of the dialog - but never out
@@ -36,7 +36,7 @@ namespace Loupedeck.OnshapePlugin
                 Icon = "mx-cancel",
                 Request = new JsonObject { ["type"] = "dialog", ["action"] = "cancel" },
                 Shortcut = Shortcut.Parse("escape"),
-                IsActive = s => s.HasDialog,
+                AlwaysBright = true,
             });
 
             this.Key("deselect", "Deselect All", "space", shortLabel: "Deselect");

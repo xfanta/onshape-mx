@@ -65,6 +65,9 @@ namespace Loupedeck.OnshapePlugin
 
             // Overrides the default "is this tool running" test.
             public Func<OnshapeState, Boolean> IsActive { get; set; }
+
+            // Never dimmed: for icons whose colour is the message (Accept, Cancel).
+            public Boolean AlwaysBright { get; set; }
         }
 
         private readonly Dictionary<String, Item> _items = new Dictionary<String, Item>();
@@ -220,7 +223,9 @@ namespace Loupedeck.OnshapePlugin
                             || ((item.Contexts == null || item.Contexts.Contains(state.Context))
                                 && (item.CommandId == null || !state.IsDisabled(item.CommandId)));
 
-            var tone = !available ? IconTone.Disabled : active || !known ? IconTone.Active : IconTone.Idle;
+            var tone = !available ? IconTone.Disabled
+                       : active || !known || item.AlwaysBright ? IconTone.Active
+                       : IconTone.Idle;
 
             try
             {
