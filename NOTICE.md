@@ -10,6 +10,9 @@ Onshape page the user is signed in to, and the plugin caches them in its data
 folder (`~/Library/Application Support/Logi/LogiPluginService/PluginData/Onshape/icons`).
 They remain PTC's.
 
+The one place they do appear is `docs/keypad.png`, a screenshot of Logi Options+
+showing the keypad as the plugin draws it.
+
 ## Trademark
 
 `OnshapePlugin/src/package/metadata/Icon256x256.png` is the Onshape logo, taken
