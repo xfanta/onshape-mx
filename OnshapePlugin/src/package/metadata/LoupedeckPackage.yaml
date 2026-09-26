@@ -14,7 +14,7 @@ description: >-
 
 pluginFileName: OnshapePlugin.dll
 
-version: 0.1
+version: 0.1.0
 author: Michal Fanta
 copyright: Copyright © 2026 Michal Fanta. MIT License.
 
