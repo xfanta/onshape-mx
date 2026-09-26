@@ -14,6 +14,7 @@ They remain PTC's.
 
 `OnshapePlugin/src/package/metadata/Icon256x256.png` is the Onshape logo, taken
 from the app Chrome creates for cad.onshape.com and cropped to fill its canvas.
+`extension/icons/` holds the same logo scaled down for the Chrome extension.
 Onshape is a trademark of PTC Inc.; the logo is used here only to identify which
 application this plugin drives.
 

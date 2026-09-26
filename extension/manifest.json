@@ -3,17 +3,32 @@
   "name": "Onshape MX Bridge",
   "version": "0.1.0",
   "description": "Lets the Onshape plugin for the Logitech MX Creative Console click Onshape's toolbar and see which tools are active.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "minimum_chrome_version": "116",
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://*.onshape.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://*.onshape.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["alarms"],
-  "host_permissions": ["https://*.onshape.com/*", "ws://127.0.0.1/*"]
+  "permissions": [
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://*.onshape.com/*",
+    "ws://127.0.0.1/*"
+  ]
 }
