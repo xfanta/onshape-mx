@@ -151,6 +151,10 @@ namespace Loupedeck.OnshapePlugin
         private void OnBridgeChanged(Object sender, EventArgs e)
         {
             var state = this.Bridge.State;
+
+            // Keep the dialog's key layout current even while no key is redrawn, so
+            // a closed dialog is forgotten before the next one opens.
+            DialogCommand.Options(state);
             // A feature dialog takes over the keys for as long as it is open, in a
             // Part Studio and an Assembly alike; a sketch keeps its own layout.
             var mode = !state.IsSketch && state.HasForm ? DialogMode : state.Context switch

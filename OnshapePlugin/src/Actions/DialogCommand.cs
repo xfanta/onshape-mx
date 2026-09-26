@@ -14,8 +14,14 @@ namespace Loupedeck.OnshapePlugin
     // off the dialog by the extension: Extrude gives Flip, Solid, New, Blind,
     // Direction, Starting offset, Symmetric, Draft, Second end position. Pressing a
     // slot moves its option on - the next tab, the next dropdown entry, the other
-    // state of a checkbox or of the direction arrow. The direction arrow always
-    // comes first, since it is what a dialog is most often opened again for.
+    // state of a checkbox or of the direction arrow. The direction arrow comes
+    // first, since it is what a dialog is most often opened again for.
+    //
+    // Slots stay put while the dialog is open. Options come and go as others
+    // change - Thin adds a second arrow for the wall's side - and re-sorting on
+    // every change would move the key under the finger that just pressed it. A
+    // new option takes the next free slot; one that disappears leaves its slot
+    // blank until the dialog closes.
     //
     // Numbers are not slots; the Dialpad dial steps those (DialogValueAdjustment).
 
@@ -39,14 +45,56 @@ namespace Loupedeck.OnshapePlugin
 
         protected OnshapePlugin OnshapePlugin => this.Plugin as OnshapePlugin;
 
-        // The dialog's options in slot order: direction arrows first, then the rest
-        // as the dialog lists them.
-        internal static IReadOnlyList<DialogParam> Options(OnshapeState state) =>
-            state.Form == null
-                ? Array.Empty<DialogParam>()
-                : state.Form.Params.Where(p => p.Kind == "flip")
-                       .Concat(state.Form.Params.Where(p => p.Kind != "flip" && !p.IsNumber))
-                       .ToArray();
+        // Parameter ids by slot for the dialog currently open, and which dialog that is.
+        private static readonly List<String> SlotOrder = new List<String>();
+        private static String _slotDialog;
+        private static readonly Object SlotLock = new Object();
+
+        // The dialog's options by slot; null where an option has gone away.
+        internal static IReadOnlyList<DialogParam> Options(OnshapeState state)
+        {
+            var form = state.Form;
+            lock (SlotLock)
+            {
+                if (form == null)
+                {
+                    SlotOrder.Clear();
+                    _slotDialog = null;
+                    return Array.Empty<DialogParam>();
+                }
+
+                var options = form.Params.Where(p => !p.IsNumber).ToArray();
+
+                if (form.Title != _slotDialog)
+                {
+                    _slotDialog = form.Title;
+                    SlotOrder.Clear();
+                    SlotOrder.AddRange(options.Where(p => p.Kind == "flip").Concat(options.Where(p => p.Kind != "flip")).Select(p => p.Id));
+                }
+                else
+                {
+                    SlotOrder.AddRange(options.Select(p => p.Id).Where(id => !SlotOrder.Contains(id)));
+                }
+
+                return SlotOrder.Select(id => options.FirstOrDefault(p => p.Id == id)).ToArray();
+            }
+        }
+
+        // Onshape shows these options as text; mx-opt-* are drawn for them (see
+        // tools/make_option_icons.py). Tabs are known by value, dropdown entries by
+        // their English label.
+        private static readonly HashSet<String> OptionIcons = new HashSet<String>
+        {
+            "solid", "surface", "thin", "new", "add", "remove", "intersect",
+            "blind", "up-to-next", "up-to-face", "up-to-part", "up-to-vertex", "through-all",
+        };
+
+        private static String OptionIcon(DialogParam param)
+        {
+            var key = (param.Kind == "tabs" ? param.Value : param.Label)
+                .Trim().ToLowerInvariant().Replace(' ', '-').Replace('_', '-');
+            return OptionIcons.Contains(key) ? "mx-opt-" + key : CycleIcon;
+        }
 
         private DialogParam ParamFor(String actionParameter)
         {
@@ -117,7 +165,7 @@ namespace Loupedeck.OnshapePlugin
             {
                 "flip" => (param.Icon, IconTone.Active),
                 "check" => param.IsOn ? (CheckOnIcon, IconTone.Active) : (CheckOffIcon, IconTone.Idle),
-                "tabs" or "select" => (CycleIcon, IconTone.Active),
+                "tabs" or "select" => (OptionIcon(param), IconTone.Active),
                 _ => (null, IconTone.Idle),
             };
 
@@ -131,7 +179,7 @@ namespace Loupedeck.OnshapePlugin
                     if (icon != null && plugin != null)
                     {
                         // The arrow's icon only turns up when a dialog shows it.
-                        if (!plugin.Icons.Has(icon))
+                        if (!icon.StartsWith(IconStore.OwnPrefix, StringComparison.Ordinal) && !plugin.Icons.Has(icon))
                         {
                             plugin.RequestIcons(icon);
                         }
