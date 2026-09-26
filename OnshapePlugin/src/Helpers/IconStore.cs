@@ -23,6 +23,8 @@ namespace Loupedeck.OnshapePlugin
         private static readonly Regex SymbolEnd = new Regex(@"</symbol>\s*$", RegexOptions.Compiled);
         private static readonly Regex SafeName = new Regex(@"^[A-Za-z0-9_.-]+$", RegexOptions.Compiled);
 
+        public const String OwnPrefix = "mx-";
+
         private readonly String _folder;
         private readonly ConcurrentDictionary<String, String> _cache = new ConcurrentDictionary<String, String>();
 
@@ -46,6 +48,11 @@ namespace Loupedeck.OnshapePlugin
 
             return this._cache.GetOrAdd(name, n =>
             {
+                if (n.StartsWith(OwnPrefix, StringComparison.Ordinal))
+                {
+                    return PluginResources.ReadTextFile(n + ".svg");
+                }
+
                 var file = this.PathOf(n);
                 return File.Exists(file) ? File.ReadAllText(file) : null;
             });

@@ -35,6 +35,11 @@
     </Reference>
   </ItemGroup>
 
+  <!-- The plugin's own icons (the view cubes); Onshape's are fetched at runtime. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Icons/**/*.svg" />
+  </ItemGroup>
+
   <Target Name="CopyPackage" AfterTargets="PostBuildEvent">
     <Message Text="📦 Copying package files..." Importance="High" />
     <ItemGroup>

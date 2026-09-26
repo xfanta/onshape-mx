@@ -24,7 +24,8 @@ namespace Loupedeck.OnshapePlugin
             this.Tool("hole", "Hole", null, null, PartStudioOnly);
             this.Tool("externalThread", "External Thread", null, null, PartStudioOnly, "Thread");
             this.Tool("cPlane", "Plane", null, null, PartStudioOnly);
-            this.Tool("mateConnector", "Mate Connector", null, "ctrl+m", PartStudioOnly, "Mate Conn.");
+            this.Tool("mateConnector", "Mate Connector", null, "ctrl+m",
+                      new[] { OnshapeState.PartStudio, OnshapeState.Assembly }, "Mate Conn.");
         }
     }
 
@@ -81,7 +82,7 @@ namespace Loupedeck.OnshapePlugin
         public CurveCommand() : base("Part Studio · Curves")
         {
             this.Tool("helix", "Helix", null, null, PartStudioOnly);
-            this.Tool("spline3D", "3D Spline", "spline-3d-button", null, PartStudioOnly);
+            this.Tool("spline3D", "3D Spline", "fit-spline-button", null, PartStudioOnly);
             this.Tool("fitSpline", "3D Fit Spline", null, null, PartStudioOnly, "Fit Spline");
             this.Tool("projectCurves", "Projected Curve", null, null, PartStudioOnly, "Projected");
             this.Tool("bridgingCurve", "Bridging Curve", null, null, PartStudioOnly, "Bridging");

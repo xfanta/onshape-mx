@@ -3,6 +3,8 @@
 
 namespace Loupedeck.OnshapePlugin
 {
+    using System.Text.Json.Nodes;
+
     // Undo, redo and finishing a dialog - things every context needs.
 
     public class EditCommand : OnshapeCommand
@@ -12,26 +14,28 @@ namespace Loupedeck.OnshapePlugin
             this.Tool("UNDO_A_CHANGE", "Undo", "undo-button", "cmd+z", shortLabel: null, parameter: "undo");
             this.Tool("REDO_A_CHANGE", "Redo", "redo-button", "cmd+shift+z", shortLabel: null, parameter: "redo");
 
-            // Enter and Escape mean the same on every layout, and Onshape only reacts
-            // to them with focus in the page, so they go out as real keystrokes.
+            // The extension presses the dialog's own green check and red cross, which
+            // needs no keyboard focus. Enter and Escape stand in without it.
             this.Add(new Item
             {
                 Parameter = "accept",
                 DisplayName = "Accept",
-                Icon = "checkmark-button",
+                Icon = "ok-button",
+                Request = new JsonObject { ["type"] = "dialog", ["action"] = "ok" },
                 Shortcut = Shortcut.Parse("enter"),
-                AlwaysRealKey = true,
                 IsActive = s => s.HasDialog,
             });
 
+            // Out of the running tool first, then out of the dialog - but never out
+            // of a sketch, whose red cross discards it.
             this.Add(new Item
             {
                 Parameter = "cancel",
                 DisplayName = "Cancel / Exit Tool",
                 ShortLabel = "Cancel",
-                Icon = "close-button",
+                Icon = "cancel-button",
+                Request = new JsonObject { ["type"] = "dialog", ["action"] = "cancel" },
                 Shortcut = Shortcut.Parse("escape"),
-                AlwaysRealKey = true,
                 IsActive = s => s.HasDialog,
             });
 
@@ -46,25 +50,26 @@ namespace Loupedeck.OnshapePlugin
     {
         public ViewCommand() : base("View")
         {
-            this.Key("front", "Front View", "shift+1", shortLabel: "Front");
-            this.Key("back", "Back View", "shift+2", shortLabel: "Back");
-            this.Key("left", "Left View", "shift+3", shortLabel: "Left");
-            this.Key("right", "Right View", "shift+4", shortLabel: "Right");
-            this.Key("top", "Top View", "shift+5", shortLabel: "Top");
-            this.Key("bottom", "Bottom View", "shift+6", shortLabel: "Bottom");
-            this.Key("iso", "Isometric View", "shift+7", shortLabel: "Iso");
-            this.Key("normal", "Normal To", "n", shortLabel: "Normal To");
-            this.Key("fit", "Zoom to Fit", "f", shortLabel: "Fit");
-            this.Key("zoom_selection", "Zoom to Selection", "w", shortLabel: "Zoom Sel.");
-            this.Key("section", "Section View", "shift+x", shortLabel: "Section");
-            this.Key("transparent", "Make Transparent", "shift+t", shortLabel: "Transparent");
+            this.Key("front", "Front View", "shift+1", "mx-view-front", shortLabel: "Front");
+            this.Key("back", "Back View", "shift+2", "mx-view-back", shortLabel: "Back");
+            this.Key("left", "Left View", "shift+3", "mx-view-left", shortLabel: "Left");
+            this.Key("right", "Right View", "shift+4", "mx-view-right", shortLabel: "Right");
+            this.Key("top", "Top View", "shift+5", "mx-view-top", shortLabel: "Top");
+            this.Key("bottom", "Bottom View", "shift+6", "mx-view-bottom", shortLabel: "Bottom");
+            this.Key("iso", "Isometric View", "shift+7", "mx-view-iso", shortLabel: "Iso");
+            this.Key("normal", "Normal To", "n", "mx-view-normal", shortLabel: "Normal To");
+            this.Key("fit", "Zoom to Fit", "f", "lui-zoom-to-fit", shortLabel: "Fit");
+            this.Key("zoom_selection", "Zoom to Selection", "w", "lui-zoom-window", shortLabel: "Zoom Sel.");
+            this.Key("section", "Section View", "shift+x", "lui-section-view", shortLabel: "Section");
+            this.Key("transparent", "Make Transparent", "shift+t", "make-transparent", shortLabel: "Transparent");
             this.Key("hide", "Hide Selected", "y", shortLabel: "Hide");
             this.Key("show_hidden", "Show Hidden", "shift+y", shortLabel: "Show All");
-            this.Key("isolate", "Isolate Selected", "shift+i", shortLabel: "Isolate");
+            this.Key("isolate", "Isolate Selected", "shift+i", "isolate-button", shortLabel: "Isolate");
             this.Key("sketches", "Show/Hide Sketches", "shift+h", shortLabel: "Sketches");
-            this.Key("planes", "Show/Hide Planes", "p", shortLabel: "Planes");
-            this.Key("measure", "Measure", "[", shortLabel: "Measure");
-            this.Key("search", "Search Tools", "alt+c", shortLabel: "Search");
+            this.Key("planes", "Show/Hide Planes", "p", "onshape-default-planes", shortLabel: "Planes");
+            this.Key("named_views", "Named Views", "shift+v", "named-view-button", shortLabel: "Named");
+            this.Key("measure", "Measure", "[", "lui-measure", shortLabel: "Measure");
+            this.Key("search", "Search Tools", "alt+c", "search-button", shortLabel: "Search");
             this.Key("shortcut_toolbar", "Shortcut Toolbar", "s", shortLabel: "Shortcuts");
         }
     }

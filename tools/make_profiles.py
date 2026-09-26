@@ -57,6 +57,7 @@ def sketch_modify(p): return ("SketchModifyCommand", p)
 def constraint(p): return ("SketchConstraintCommand", p)
 def view(p): return ("ViewCommand", p)
 def edit(p): return ("EditCommand", p)
+def assembly(p): return ("AssemblyCommand", p)
 
 
 # Keypad pages per mode, nine keys each, read left to right and top to bottom.
@@ -74,9 +75,9 @@ KEYPAD_MODES = {
             modify("splitPart"), pattern("transform"), modify("moveFace"),
         ]),
         ("View", [
-            view("front"), view("top"), view("right"),
-            view("iso"), view("fit"), view("normal"),
-            view("section"), edit("undo"), edit("redo"),
+            view("front"), view("top"), view("iso"),
+            view("fit"), view("normal"), view("section"),
+            edit("undo"), edit("accept"), edit("cancel"),
         ]),
     ],
     "Sketch": [
@@ -102,10 +103,20 @@ KEYPAD_MODES = {
         ]),
     ],
     "Assembly": [
+        ("Mate", [
+            assembly("insertPartOrAssembly"), assembly("fastened"), assembly("revolute"),
+            assembly("slider"), assembly("planar"), assembly("cylindrical"),
+            feature("mateConnector"), assembly("TOGGLE_ASSEMBLY_SNAP_MODE"), assembly("TOGGLE_SHOW_MATES_ON_SELECTION_MODE"),
+        ]),
+        ("More", [
+            assembly("pin_slot"), assembly("ball"), assembly("parallel"),
+            assembly("geometryMate"), assembly("widthMate"), assembly("mateGroup"),
+            assembly("replicate"), assembly("assemblyLinearPattern"), assembly("assemblyMirror"),
+        ]),
         ("View", [
-            view("front"), view("top"), view("right"),
-            view("iso"), view("fit"), view("normal"),
-            edit("undo"), edit("redo"), edit("cancel"),
+            view("front"), view("top"), view("iso"),
+            view("fit"), view("transparent"), view("section"),
+            edit("undo"), edit("accept"), edit("cancel"),
         ]),
     ],
 }

@@ -28,7 +28,7 @@ namespace Loupedeck.OnshapePlugin
             this.Tool("SLOT", "Slot", "sketch-slot-button", null, SketchOnly);
             this.Tool("SPLINE", "Spline", "sketch-spline-button", null, SketchOnly);
             this.Tool("BEZIER", "Bezier", "sketch-bezier-button", null, SketchOnly);
-            this.Tool("ADD_SPLINE_POINT", "Spline Control Point", "add-spline-point-button", null, SketchOnly, "Spl. Point");
+            this.Tool("ADD_SPLINE_POINT", "Spline Control Point", "add-spline-point", null, SketchOnly, "Spl. Point");
             this.Tool("POINT", "Point", "sketch-point-button", "shift+s", SketchOnly);
             this.Tool("TEXT_RECTANGLE_TWO_CORNERS", "Text", "sketch-text-rectangle-button", null, SketchOnly);
             this.Tool("IMAGE_RECTANGLE_TWO_CORNERS", "Insert Image", "sketch-image-rectangle-button", null, SketchOnly, "Image");
@@ -47,7 +47,7 @@ namespace Loupedeck.OnshapePlugin
             this.Tool("CHAMFER", "Sketch Chamfer", "sketch-chamfer-button", null, SketchOnly, "Chamfer");
             this.Tool("TRIM", "Trim", "sketch-trim-button", "m", SketchOnly);
             this.Tool("EXTEND", "Extend", "sketch-extend-button", "x", SketchOnly);
-            this.Tool("SPLIT", "Split", "sketch-split-button", null, SketchOnly);
+            this.Tool("SPLIT", "Split", "sketch_split_icon", null, SketchOnly);
             this.Tool("OFFSET", "Offset", "sketch-offset-button", "o", SketchOnly);
             this.Tool("SKETCHMIRROR", "Sketch Mirror", "sketch-mirror-button", null, SketchOnly, "Mirror");
             this.Tool("SKETCHLPATTERN", "Sketch Linear Pattern", "sketch-lpattern-button", null, SketchOnly, "Lin. Pattern");
@@ -74,7 +74,7 @@ namespace Loupedeck.OnshapePlugin
             this.Tool("PIERCE", "Pierce", "sketch-pierce-button", "shift+g", SketchOnly);
             this.Tool("MIRROR", "Symmetric", "sketch-symmetric-button", "shift+q", SketchOnly);
             this.Tool("FIX", "Fix", "sketch-fix-button", "shift+j", SketchOnly);
-            this.Tool("EQUAL_CURVATURE", "Curvature", "equal-curvature-button", "shift+u", SketchOnly);
+            this.Tool("EQUAL_CURVATURE", "Curvature", "equal-curvature", "shift+u", SketchOnly);
         }
     }
 }

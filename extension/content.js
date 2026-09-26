@@ -66,6 +66,9 @@
         case "key":
           result = key(message);
           break;
+        case "dialog":
+          result = dialog(message.action);
+          break;
         case "getIcons":
           for (const name of message.names ?? []) {
             wantedIcons.add(name);
@@ -99,6 +102,21 @@
 
   const toolbar = () => document.querySelector(".os-element-toolbar");
 
+  // A few buttons share a command-id - every assembly mate is "mate" - and only
+  // their icon tells them apart, so a tool is named "mate#revolute" when needed.
+  const iconOf = (el) => (el.querySelector("use")?.getAttribute("xlink:href") ?? "").replace(/^#svg-icon-/, "");
+
+  const keysOf = (el) => {
+    const id = el.getAttribute("command-id");
+    const icon = iconOf(el);
+    return icon ? [id, `${id}#${icon}`] : [id];
+  };
+
+  const matches = (el, key) => {
+    const [id, icon] = key.split("#");
+    return el.getAttribute("command-id") === id && (icon == null || iconOf(el) === icon);
+  };
+
   const toolbarTools = () => {
     const bar = toolbar();
     return bar ? [...bar.querySelectorAll("[command-id]")].filter(visible) : [];
@@ -118,15 +136,14 @@
   }
 
   // A feature or sketch dialog: the panel with the green check and the red cross.
-  function hasDialog() {
-    return [...document.querySelectorAll(".os-feature-dialog, .feature-dialog, [class*='feature-dialog']")]
-      .some(visible);
-  }
+  const openDialog = () => [...document.querySelectorAll(".feature-dialog")].find(visible);
+
+  const hasDialog = () => openDialog() != null;
 
   function readState() {
     const tools = toolbarTools();
     const ids = new Set(tools.map((t) => t.getAttribute("command-id")));
-    const idsWhere = (cls) => tools.filter((t) => t.classList.contains(cls)).map((t) => t.getAttribute("command-id"));
+    const idsWhere = (cls) => tools.filter((t) => t.classList.contains(cls)).flatMap(keysOf);
 
     return {
       context: contextOf(ids),
@@ -230,10 +247,10 @@
       const items = await waitForDropdown();
       const face = faceOf(arrow);
       for (const item of items) {
-        dropdownOf.set(item.getAttribute("command-id"), face);
+        keysOf(item).forEach((k) => dropdownOf.set(k, face));
       }
 
-      const hit = items.find((item) => item.getAttribute("command-id") === id);
+      const hit = items.find((item) => matches(item, id));
       if (hit) {
         return { el: hit, arrow };
       }
@@ -246,7 +263,7 @@
   }
 
   async function run(id) {
-    let el = toolbarTools().find((t) => t.getAttribute("command-id") === id);
+    let el = toolbarTools().find((t) => matches(t, id));
     let arrow = null;
 
     if (!el) {
@@ -306,6 +323,39 @@
     return { ok: true };
   }
 
+  const ESCAPE = { key: "Escape", code: "Escape", keyCode: 27 };
+
+  // The dialog's own buttons rather than Enter and Escape: they work without the
+  // page having keyboard focus, and OK stays refused while it is greyed out.
+  function dialog(action) {
+    const panel = openDialog();
+
+    if (action === "ok") {
+      const ok = panel?.querySelector(".ns-dialog-button-ok");
+      if (!ok || !visible(ok)) {
+        return { ok: false, error: "no dialog open" };
+      }
+      if (ok.classList.contains("disabled")) {
+        return { ok: false, error: "the dialog cannot be accepted yet" };
+      }
+      press(ok);
+      return { ok: true };
+    }
+
+    // Cancel steps back one level, like Escape: out of a running tool first. In
+    // a sketch it never goes further - the sketch's red cross throws the whole
+    // sketch away, which is not what a Cancel key should do.
+    const toolRunning = toolbarTools().some((t) => t.classList.contains("is-active"));
+    const inSketch = contextOf(new Set(toolbarTools().map((t) => t.getAttribute("command-id")))) === "sketch";
+    const cancel = panel?.querySelector(".ns-dialog-button-cancel");
+    if (!toolRunning && !inSketch && cancel && visible(cancel)) {
+      press(cancel);
+      return { ok: true };
+    }
+
+    return key(ESCAPE);
+  }
+
   // Every tool the current toolbar offers, dropdowns included - for building the
   // plugin's catalog. Opens each dropdown in turn.
   async function discover() {
@@ -313,15 +363,15 @@
     const seen = new Set();
     const describe = (el, dropdown) => {
       const id = el.getAttribute("command-id");
-      if (seen.has(id)) {
+      if (seen.has(`${id}#${iconOf(el)}`)) {
         return;
       }
-      seen.add(id);
+      seen.add(`${id}#${iconOf(el)}`);
       tools.push({
         id,
         label: el.querySelector(".tool-label")?.textContent.trim() ?? "",
         title: el.getAttribute("data-bs-original-title") ?? "",
-        icon: (el.querySelector("use")?.getAttribute("xlink:href") ?? "").replace(/^#svg-icon-/, ""),
+        icon: iconOf(el),
         dropdown,
       });
     };

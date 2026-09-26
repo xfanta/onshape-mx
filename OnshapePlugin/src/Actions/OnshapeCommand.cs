@@ -48,7 +48,12 @@ namespace Loupedeck.OnshapePlugin
             public String Icon { get; set; }
 
             // The toolbar button's command-id, or null for a shortcut-only item.
+            // Buttons that share an id carry their icon too: "mate#revolute".
             public String CommandId { get; set; }
+
+            // What to ask the extension for, when it is neither a toolbar tool nor
+            // a page shortcut: {"type": "dialog", "action": "ok"}.
+            public JsonObject Request { get; set; }
 
             public Shortcut Shortcut { get; set; }
 
@@ -115,7 +120,7 @@ namespace Loupedeck.OnshapePlugin
             this._items[item.Parameter] = item;
             this.AddParameter(item.Parameter, item.DisplayName, this._groupName);
 
-            if (item.Icon != null)
+            if (item.Icon != null && !item.Icon.StartsWith(IconStore.OwnPrefix, StringComparison.Ordinal))
             {
                 AllIcons.Add(item.Icon);
             }
@@ -161,7 +166,14 @@ namespace Loupedeck.OnshapePlugin
 
             if (!item.AlwaysRealKey && bridge != null)
             {
-                if (item.CommandId != null)
+                if (item.Request != null)
+                {
+                    var request = (JsonObject)item.Request.DeepClone();
+                    var type = request["type"]!.GetValue<String>();
+                    request.Remove("type");
+                    result = bridge.Invoke(type, request);
+                }
+                else if (item.CommandId != null)
                 {
                     result = bridge.Invoke("run", new JsonObject { ["command"] = item.CommandId });
                 }
