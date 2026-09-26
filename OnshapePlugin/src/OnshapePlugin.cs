@@ -23,6 +23,7 @@ namespace Loupedeck.OnshapePlugin
         public const String MainMode = "main";
         public const String SketchMode = "Sketch";
         public const String AssemblyMode = "Assembly";
+        public const String DialogMode = "Dialog";
 
         // The plugin sends keyboard shortcuts, so it is not API-only.
         public override Boolean UsesApplicationApiOnly => false;
@@ -91,6 +92,7 @@ namespace Loupedeck.OnshapePlugin
             {
                 (SketchMode, "A sketch is open"),
                 (AssemblyMode, "An Assembly tab is open"),
+                (DialogMode, "A feature dialog is open"),
             })
             {
                 try
@@ -110,8 +112,29 @@ namespace Loupedeck.OnshapePlugin
         // may be older than the Onshape the page is running.
         private void OnExtensionConnected(Object sender, EventArgs e)
         {
+            // A reloaded page has forgotten what it was asked for.
+            this._requestedIcons.Clear();
+
             var names = new JsonArray(OnshapeCommand.AllIcons.OrderBy(n => n).Select(n => (JsonNode)n).ToArray());
             this.Bridge.Post(new JsonObject { ["type"] = "getIcons", ["names"] = names });
+        }
+
+        private readonly System.Collections.Generic.HashSet<String> _requestedIcons =
+            new System.Collections.Generic.HashSet<String>();
+
+        // For icons only known once the page shows them, like a dialog's direction
+        // arrow. Asked for once each; the page keeps looking until it has them.
+        internal void RequestIcons(params String[] names)
+        {
+            var fresh = names.Where(n => n != null && this._requestedIcons.Add(n)).ToArray();
+            if (fresh.Length > 0)
+            {
+                this.Bridge.Post(new JsonObject
+                {
+                    ["type"] = "getIcons",
+                    ["names"] = new JsonArray(fresh.Select(n => (JsonNode)n).ToArray()),
+                });
+            }
         }
 
         private void OnIconsReceived(Object sender, System.Collections.Generic.IReadOnlyDictionary<String, String> icons)
@@ -128,7 +151,9 @@ namespace Loupedeck.OnshapePlugin
         private void OnBridgeChanged(Object sender, EventArgs e)
         {
             var state = this.Bridge.State;
-            var mode = state.Context switch
+            // A feature dialog takes over the keys for as long as it is open, in a
+            // Part Studio and an Assembly alike; a sketch keeps its own layout.
+            var mode = !state.IsSketch && state.HasForm ? DialogMode : state.Context switch
             {
                 OnshapeState.Sketch => SketchMode,
                 OnshapeState.Assembly => AssemblyMode,

@@ -20,7 +20,7 @@ namespace Loupedeck.OnshapePlugin
             {
                 Parameter = "accept",
                 DisplayName = "Accept",
-                Icon = "ok-button",
+                Icon = "mx-accept",
                 Request = new JsonObject { ["type"] = "dialog", ["action"] = "ok" },
                 Shortcut = Shortcut.Parse("enter"),
                 IsActive = s => s.HasDialog,
@@ -33,7 +33,7 @@ namespace Loupedeck.OnshapePlugin
                 Parameter = "cancel",
                 DisplayName = "Cancel / Exit Tool",
                 ShortLabel = "Cancel",
-                Icon = "cancel-button",
+                Icon = "mx-cancel",
                 Request = new JsonObject { ["type"] = "dialog", ["action"] = "cancel" },
                 Shortcut = Shortcut.Parse("escape"),
                 IsActive = s => s.HasDialog,

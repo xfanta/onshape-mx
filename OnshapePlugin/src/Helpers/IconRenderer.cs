@@ -26,6 +26,9 @@ namespace Loupedeck.OnshapePlugin
     //
     // State shows in brightness, as in the Blender plugin: the whole palette is
     // scaled towards black for an idle or a disabled key.
+    //
+    // An icon marked data-keep-colours (Accept's green, Cancel's red) is only
+    // dimmed, never remapped - its colours are the point.
 
     internal sealed class IconRenderer
     {
@@ -70,7 +73,8 @@ namespace Loupedeck.OnshapePlugin
                 _ => 0.28,
             };
 
-            svg = Colour.Replace(svg, m => Scale(Recolour(m), brightness));
+            var keep = svg.Contains("data-keep-colours");
+            svg = Colour.Replace(svg, m => Scale(keep ? m.Value : Recolour(m), brightness));
             svg = SvgTag.Replace(svg, $@"<svg width=""{size}"" height=""{size}""", 1);
             return BitmapImage.FromSvg(svg);
         }

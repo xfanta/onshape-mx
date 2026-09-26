@@ -58,6 +58,7 @@ def constraint(p): return ("SketchConstraintCommand", p)
 def view(p): return ("ViewCommand", p)
 def edit(p): return ("EditCommand", p)
 def assembly(p): return ("AssemblyCommand", p)
+def slot(n): return ("DialogCommand", f"slot{n}")
 
 
 # Keypad pages per mode, nine keys each, read left to right and top to bottom.
@@ -102,6 +103,16 @@ KEYPAD_MODES = {
             constraint("FIX"), constraint("CONCENTRIC"), view("normal"),
         ]),
     ],
+    # Whatever feature dialog is open: its options fill the slots in order, the
+    # direction arrow first. See DialogCommand.
+    "Dialog": [
+        ("Options", [
+            edit("accept"), edit("cancel"), slot(1),
+            slot(2), slot(3), slot(4),
+            slot(5), slot(6), slot(7),
+        ]),
+        ("More", [slot(n) for n in range(8, 17)]),
+    ],
     "Assembly": [
         ("Mate", [
             assembly("insertPartOrAssembly"), assembly("fastened"), assembly("revolute"),
@@ -124,6 +135,8 @@ KEYPAD_MODES = {
 DIALPAD_BUTTONS = [edit("undo"), edit("redo"), edit("accept"), edit("cancel")]
 
 DIALPAD_DIALS = [("OrbitAdjustment", None), ("ZoomAdjustment", None)]
+
+DIALOG_DIALS = [("DialogValueAdjustment", None), ("ZoomAdjustment", None)]
 
 
 def control(index, press=None, rotate=None):
@@ -261,16 +274,19 @@ def main():
     }
     write(OUT / "DefaultProfile70.lp5", *profile("Loupedeck70", "Onshape", keypad))
 
-    # The Dialpad does the same in every mode: history, dialogs and the view.
-    def dialpad():
-        buttons = [page("Page (1)", [control(slot, press=action(cls, param))
-                                     for slot, (cls, param) in enumerate(DIALPAD_BUTTONS)])]
-        dials = [page("Dial Page", [control(slot, rotate=action(cls, param))
-                                    for slot, (cls, param) in enumerate(DIALPAD_DIALS)])]
+    # The Dialpad's buttons do the same in every mode: history and dialogs. Its
+    # dials turn the view - except with a dialog open, when the first one sets
+    # the dialog's value.
+    def dialpad(mode):
+        dials_for_mode = DIALOG_DIALS if mode == "Dialog" else DIALPAD_DIALS
+        buttons = [page("Page (1)", [control(i, press=action(cls, param))
+                                     for i, (cls, param) in enumerate(DIALPAD_BUTTONS)])]
+        dials = [page("Dial Page", [control(i, rotate=action(cls, param))
+                                    for i, (cls, param) in enumerate(dials_for_mode)])]
         return buttons, dials
 
     write(OUT / "DefaultProfile71.lp5",
-          *profile("Loupedeck71", "Onshape", {mode: dialpad() for mode in KEYPAD_MODES}))
+          *profile("Loupedeck71", "Onshape", {mode: dialpad(mode) for mode in KEYPAD_MODES}))
 
 
 if __name__ == "__main__":

@@ -69,6 +69,9 @@
         case "dialog":
           result = dialog(message.action);
           break;
+        case "param":
+          result = await param(message);
+          break;
         case "getIcons":
           for (const name of message.names ?? []) {
             wantedIcons.add(name);
@@ -145,11 +148,14 @@
     const ids = new Set(tools.map((t) => t.getAttribute("command-id")));
     const idsWhere = (cls) => tools.filter((t) => t.classList.contains(cls)).flatMap(keysOf);
 
+    const context = contextOf(ids);
     return {
-      context: contextOf(ids),
+      context,
       active: idsWhere("is-active"),
       disabled: idsWhere("disabled"),
       dialog: hasDialog(),
+      // A sketch is a dialog too, but it has a mode of its own.
+      form: context === "sketch" ? null : readForm(),
       focused: document.hasFocus() && document.visibilityState === "visible",
       toolbar: [...ids],
     };
@@ -354,6 +360,159 @@
     }
 
     return key(ESCAPE);
+  }
+
+  // ---------------------------------------------------------------- dialog parameters
+
+  // A feature dialog is a list of parameters, each an .os-parameter-list-item
+  // with data-parameter-id ("bodyType", "oppositeDirection", "depth") and a
+  // child whose data-parameter-type says what it is. Four kinds are worth a key:
+  //
+  //   tabs    an enum shown as a row of options (Solid | Surface | Thin)
+  //   select  an enum shown as a dropdown (Blind, Up to next, ...)
+  //   flip    a boolean shown as an icon button (the direction arrow)
+  //   check   a boolean shown as a checkbox (Symmetric, Draft, ...)
+  //   number  a quantity (Depth: 25 mm) - for a dial rather than a key
+  //
+  // Selections, strings and the like are left to the mouse.
+
+  const parameterItems = () => {
+    const panel = openDialog();
+    return panel ? [...panel.querySelectorAll(".os-parameter-list-item[data-parameter-id]")].filter(visible) : [];
+  };
+
+  const findParameter = (id) => parameterItems().find((item) => item.getAttribute("data-parameter-id") === id);
+
+  const textOf = (el) => (el?.textContent ?? "").trim().replace(/\s+/g, " ");
+
+  function describeParameter(item) {
+    const id = item.getAttribute("data-parameter-id");
+    const type = item.querySelector("[data-parameter-type]")?.getAttribute("data-parameter-type") ?? "";
+
+    if (type === "os-enum-parameter") {
+      const options = [...item.querySelectorAll("[data-enum-param-value]")];
+      if (options.length > 0) {
+        const active = options.find((o) => o.classList.contains("os-active"));
+        return { id, kind: "tabs", label: textOf(active), value: active?.getAttribute("data-enum-param-value") ?? "" };
+      }
+      const current = item.querySelector(".os-select-match-text");
+      if (current) {
+        return { id, kind: "select", label: textOf(current), value: textOf(current) };
+      }
+      return null;
+    }
+
+    if (type === "os-boolean-parameter") {
+      const button = item.querySelector(".os-param-icon-button");
+      if (button) {
+        return { id, kind: "flip", label: "", value: button.getAttribute("icon") ?? "", icon: button.getAttribute("icon") ?? "" };
+      }
+      const box = item.querySelector("input[type=checkbox]");
+      if (box) {
+        return { id, kind: "check", label: textOf(item.querySelector(".os-param-checkbox-label")), value: box.checked };
+      }
+      return null;
+    }
+
+    if (type === "os-quantity-parameter") {
+      const input = item.querySelector("input.os-param-number");
+      if (input) {
+        return { id, kind: "number", label: textOf(item.querySelector(".os-param-label, label")), value: input.value };
+      }
+    }
+
+    return null;
+  }
+
+  function readForm() {
+    const panel = openDialog();
+    if (!panel) {
+      return null;
+    }
+    return {
+      title: textOf(panel.querySelector(".ns-dialog-title")),
+      params: parameterItems().map(describeParameter).filter((p) => p != null),
+    };
+  }
+
+  const NUMBER = /^\s*(-?\d+(?:\.\d+)?)\s*([^\d\s].*)?$/;
+
+  // Steps a quantity by `delta` detents. A detent is one unit of whatever the
+  // field shows - 1 mm, 1 deg - or a tenth of an inch. Expressions ("#width * 2")
+  // are left alone.
+  //
+  // The value is committed the way leaving the field commits it: input, change,
+  // blur. Never Enter - in a feature dialog, Enter accepts the whole feature.
+  function stepNumber(item, delta) {
+    const input = item.querySelector("input.os-param-number");
+    const match = input && NUMBER.exec(input.value);
+    if (!match) {
+      return { ok: false, error: "not a plain number" };
+    }
+
+    const unit = (match[2] ?? "").trim();
+    const step = /^(in|")$/.test(unit) ? 0.1 : 1;
+    // toFixed then Number: 0.1 + 0.2 shows as 0.3, not 0.30000000000000004.
+    const next = Number((parseFloat(match[1]) + delta * step).toFixed(4));
+    const text = unit ? `${next} ${unit}` : `${next}`;
+
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    input.focus();
+    setValue.call(input, text);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.blur();
+    return { ok: true, value: text };
+  }
+
+  async function nextSelectOption(item) {
+    const toggle = item.querySelector(".os-select-toggle");
+    if (!toggle) {
+      return { ok: false, error: "no dropdown" };
+    }
+    press(toggle);
+
+    let rows = [];
+    for (let i = 0; i < 10 && rows.length === 0; i++) {
+      await sleep(30);
+      rows = [...document.querySelectorAll(".os-select-choices-row")].filter(visible);
+    }
+    if (rows.length === 0) {
+      return { ok: false, error: "dropdown did not open" };
+    }
+
+    const current = rows.findIndex((r) => r.classList.contains("active"));
+    press(rows[(current + 1) % rows.length]);
+    return { ok: true };
+  }
+
+  async function param({ id, op, delta }) {
+    const item = findParameter(id);
+    const info = item && describeParameter(item);
+    if (!info) {
+      return { ok: false, error: `no parameter '${id}' in the open dialog` };
+    }
+
+    switch (info.kind) {
+      case "tabs": {
+        const options = [...item.querySelectorAll("[data-enum-param-value]")].filter(visible);
+        const current = options.findIndex((o) => o.classList.contains("os-active"));
+        const step = op === "prev" ? -1 : 1;
+        press(options[(current + step + options.length) % options.length]);
+        return { ok: true };
+      }
+      case "select":
+        return nextSelectOption(item);
+      case "flip":
+        press(item.querySelector(".os-param-icon-button"));
+        return { ok: true };
+      case "check":
+        press(item.querySelector("label") ?? item.querySelector("input[type=checkbox]"));
+        return { ok: true };
+      case "number":
+        return op === "step" ? stepNumber(item, delta ?? 0) : { ok: false, error: "numbers are stepped" };
+    }
+    return { ok: false, error: `cannot operate '${id}'` };
   }
 
   // Every tool the current toolbar offers, dropdowns included - for building the
