@@ -1,0 +1,56 @@
+# ==================================================================================================
+# GENERAL SETTINGS
+# ==================================================================================================
+
+type: plugin4
+
+name: Onshape
+displayName: Onshape
+description: >-
+  Every Onshape tool on the MX Creative Console - sketch, features, surfaces,
+  sheet metal and views - with the keys following the toolbar: open a sketch
+  and the console switches to sketch tools. Works through the "Onshape MX
+  Bridge" Chrome extension, with keyboard shortcuts as a fallback.
+
+pluginFileName: OnshapePlugin.dll
+
+version: 0.1
+author: Michal Fanta
+copyright: Copyright © 2026 Michal Fanta. MIT License.
+
+
+# ==================================================================================================
+# PLUGIN PROPERTIES
+# ==================================================================================================
+
+pluginFolderMac: bin
+
+# Loupedeck70 / 71 / 72 - MX Creative Keypad, MX Creative Dialpad and the Actions Ring.
+supportedDevices:
+    - LogitechCreativeFamily
+
+pluginCapabilities:
+    # The plugin's actions belong to an application (Onshape).
+    - HasApplication
+
+    # Fallback keystrokes need Onshape in front.
+    - ActivatesApplication
+
+# Onshape installed as a Chrome app: every such app runs app_mode_loader under a
+# bundle id of com.google.Chrome.app.<id>, so the display name is what singles
+# Onshape out. OnshapeApplication checks the app's start URL as well.
+applicationPatterns:
+    bundleNamePattern: ^com\.google\.Chrome\.app\.[a-z]{32}$
+    displayNamePattern: ^Onshape$
+
+minimumLoupedeckVersion: 6.0
+
+
+# ==================================================================================================
+# MARKETPLACE SETTINGS
+# ==================================================================================================
+
+license: MIT
+licenseUrl: https://opensource.org/licenses/MIT
+homePageUrl: https://github.com/xfanta/onshape-mx
+supportPageUrl: https://github.com/xfanta/onshape-mx/issues
