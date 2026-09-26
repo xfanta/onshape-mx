@@ -161,11 +161,13 @@ namespace Loupedeck.OnshapePlugin
             var plugin = this.OnshapePlugin;
             var param = this.ParamFor(actionParameter);
 
+            // Idle, like every other key: only a ticked checkbox is at full brightness,
+            // because that is a state worth seeing.
             var (icon, tone) = param?.Kind switch
             {
-                "flip" => (param.Icon, IconTone.Active),
+                "flip" => (param.Icon, IconTone.Idle),
                 "check" => param.IsOn ? (CheckOnIcon, IconTone.Active) : (CheckOffIcon, IconTone.Idle),
-                "tabs" or "select" => (OptionIcon(param), IconTone.Active),
+                "tabs" or "select" => (OptionIcon(param), IconTone.Idle),
                 _ => (null, IconTone.Idle),
             };
 
