@@ -348,13 +348,13 @@
       return { ok: true };
     }
 
-    // Cancel steps back one level, like Escape: out of a running tool first. In
-    // a sketch it never goes further - the sketch's red cross throws the whole
-    // sketch away, which is not what a Cancel key should do.
-    const toolRunning = toolbarTools().some((t) => t.classList.contains("is-active"));
+    // In a sketch, Cancel is Escape: out of the running tool, never out of the
+    // sketch - the sketch's red cross throws the whole sketch away. Elsewhere it
+    // is the dialog's red cross. (The feature's own toolbar button shows as
+    // active while its dialog is open, so "a tool is running" says nothing there.)
     const inSketch = contextOf(new Set(toolbarTools().map((t) => t.getAttribute("command-id")))) === "sketch";
     const cancel = panel?.querySelector(".ns-dialog-button-cancel");
-    if (!toolRunning && !inSketch && cancel && visible(cancel)) {
+    if (!inSketch && cancel && visible(cancel)) {
       press(cancel);
       return { ok: true };
     }
@@ -486,7 +486,8 @@
     return { ok: true };
   }
 
-  async function param({ id, op, delta }) {
+  // The parameter travels as "param": "id" is the request's own number.
+  async function param({ param: id, op, delta }) {
     const item = findParameter(id);
     const info = item && describeParameter(item);
     if (!info) {

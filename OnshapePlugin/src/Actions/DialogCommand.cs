@@ -93,7 +93,7 @@ namespace Loupedeck.OnshapePlugin
             var param = this.ParamFor(actionParameter);
             if (param != null)
             {
-                this.OnshapePlugin.Bridge.Invoke("param", new JsonObject { ["id"] = param.Id, ["op"] = "next" });
+                this.OnshapePlugin.Bridge.Invoke("param", new JsonObject { ["param"] = param.Id, ["op"] = "next" });
             }
         }
 
