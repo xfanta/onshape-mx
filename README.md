@@ -51,12 +51,31 @@ keys, not the basics.
 
 ## Install
 
-Download both files from the [latest release](https://github.com/xfanta/onshape-mx/releases/latest):
+Paste this into Terminal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/xfanta/onshape-mx/main/install.sh | sh
+```
+
+[`install.sh`](install.sh) downloads the latest release, installs the Options+
+plugin, unpacks the Chrome extension to `~/Library/Application Support/Onshape MX`
+and opens Chrome's Extensions page with that folder on the clipboard. It checks that
+Onshape is installed as a Chrome app and that the plugin loaded. Loading the
+extension is the one step left to you — Chrome does not let a script do it — and
+the script says how. To update, run it again; add `--reset-profile` to rebuild the
+keypad layout from the defaults, dropping your own changes to it.
+
+A downloaded `.command` file would save opening Terminal, but macOS refuses to run
+an unsigned one on a double-click, which is worse.
+
+The rest of this section is what the script does, for doing it by hand. Both files
+are in the [latest release](https://github.com/xfanta/onshape-mx/releases/latest):
 
 * [`Onshape.lplug4`](https://github.com/xfanta/onshape-mx/releases/latest/download/Onshape.lplug4) — the Options+ plugin
 * [`onshape-mx-bridge.zip`](https://github.com/xfanta/onshape-mx/releases/latest/download/onshape-mx-bridge.zip) — the Chrome extension
 
-They are also in `dist/` if you cloned the repository.
+They are also in `dist/` if you cloned the repository; `install.sh` run from that
+folder uses them instead of downloading.
 
 ### 1. Onshape as a Chrome app
 
@@ -75,9 +94,10 @@ Company domains (`yourcompany.onshape.com`) work the same.
 
 ### 2. The Chrome extension
 
-Unzip `onshape-mx-bridge.zip`, then in Chrome open `chrome://extensions`, switch on
-*Developer mode* and choose *Load unpacked* on the unzipped folder. Extensions run in
-installed-app windows too.
+Unzip `onshape-mx-bridge.zip` somewhere it can stay — Chrome loads an unpacked
+extension from its folder every time — then in Chrome open `chrome://extensions`,
+switch on *Developer mode* and choose *Load unpacked* on the `extension` folder.
+Extensions run in installed-app windows too.
 
 Reload any Onshape window that was already open (⌘R), so the extension gets into it.
 
