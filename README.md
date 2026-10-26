@@ -1,3 +1,15 @@
+<p align="center">
+  <img src="docs/banner.png" alt="Onshape MX Creative — every Onshape tool on your Logitech MX Creative Console">
+</p>
+
+<p align="center">
+  <a href="https://github.com/xfanta/onshape-mx/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/xfanta/onshape-mx?color=64BC4F&label=release"></a>
+  <img alt="macOS" src="https://img.shields.io/badge/macOS-Apple%20silicon-64BC4F">
+  <img alt="Chrome extension" src="https://img.shields.io/badge/Chrome-extension-64BC4F">
+  <img alt="Logi Options+" src="https://img.shields.io/badge/Logi%20Options%2B-plugin-64BC4F">
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/xfanta/onshape-mx?color=64BC4F"></a>
+</p>
+
 # Onshape MX Creative
 
 Drive Onshape from a Logitech MX Creative Console — a Logi Options+ plugin plus the
@@ -8,8 +20,6 @@ for — Chamfer, Shell, Loft, patterns, surfaces, sheet metal. And the keypad fo
 what is on screen: open a sketch and it switches to sketch tools, open a feature
 dialog and its keys become that dialog's options.
 
-![The keypad in Options+](docs/keypad.png)
-
 macOS only for now. Tested with Chrome 153, Logi Options+ 2.8 and Logi Plugin
 Service 6.4 on macOS 27, Apple silicon.
 
@@ -19,15 +29,9 @@ See [NOTICE.md](NOTICE.md).
 
 ## How it works
 
-```
-MX Creative Console  ->  Logi Plugin Service  ->  Onshape plugin (C#)
-                                                      |
-                                        ws://127.0.0.1:47810 (JSON)
-                                                      |
-                             MX Console Bridge for Onshape (Chrome extension)
-                                                      |
-                                      content script on cad.onshape.com
-```
+<p align="center">
+  <img src="docs/how-it-works.svg" alt="MX Creative Console → Onshape plugin for Logi Options+ ↔ ws://127.0.0.1:47810 ↔ MX Console Bridge Chrome extension → Onshape">
+</p>
 
 Onshape has no API for driving its user interface, so the extension works the page
 itself. Every button on Onshape's toolbar carries a `command-id` attribute —
@@ -72,7 +76,7 @@ The rest of this section is what the script does, for doing it by hand. Both fil
 are in the [latest release](https://github.com/xfanta/onshape-mx/releases/latest):
 
 * [`Onshape.lplug4`](https://github.com/xfanta/onshape-mx/releases/latest/download/Onshape.lplug4) — the Options+ plugin
-* [`onshape-mx-bridge.zip`](https://github.com/xfanta/onshape-mx/releases/latest/download/onshape-mx-bridge.zip) — the Chrome extension
+* [`onshape-mx-bridge.zip`](https://github.com/xfanta/onshape-mx/releases/latest/download/onshape-mx-bridge.zip) — the Chrome extension, *MX Console Bridge for Onshape*
 
 They are also in `dist/` if you cloned the repository; `install.sh` run from that
 folder uses them instead of downloading.
@@ -98,6 +102,9 @@ Unzip `onshape-mx-bridge.zip` somewhere it can stay — Chrome loads an unpacked
 extension from its folder every time — then in Chrome open `chrome://extensions`,
 switch on *Developer mode* and choose *Load unpacked* on the `extension` folder.
 Extensions run in installed-app windows too.
+
+The extension is on its way to the Chrome Web Store; once it is listed, installing
+it will be one click there, with updates included.
 
 Reload any Onshape window that was already open (⌘R), so the extension gets into it.
 
@@ -130,12 +137,13 @@ To confirm everything is connected, look for `Onshape extension connected` in
 
 The keypad has a layout per situation, and switches between them by itself:
 
-| Mode | When | Pages |
-| --- | --- | --- |
-| Part Studio | a Part Studio is open | **Create** · **Modify** · **View** |
-| Sketch | a sketch is open | **Draw** · **Modify** · **Constrain** · **More** |
-| Dialog | a feature dialog is open | **Options** · **More** |
-| Assembly | an Assembly is open | **Mate** · **More** · **View** |
+<p align="center">
+  <img src="docs/modes.svg" alt="Part Studio: Create, Modify, View. Sketch: Draw, Modify, Constrain, More. Dialog: Options, More. Assembly: Mate, More, View.">
+</p>
+
+<p align="center">
+  <img src="docs/keypad.png" width="360" alt="The Part Studio's Create page in Options+">
+</p>
 
 **Part Studio** — Create: Sketch, Extrude, Revolve / Sweep, Loft, Plane / Fillet,
 Chamfer, Shell. Modify: Hole, Draft, Mirror / Linear and Circular pattern, Boolean /
@@ -194,7 +202,14 @@ as you like:
 Icons are Onshape's own, fetched from the page and cached in
 `~/Library/Application Support/Logi/LogiPluginService/PluginData/Onshape/icons`.
 Where Onshape has none — the standard views, Accept and Cancel, and the dialog
-options it shows only as text — they are drawn here in the same style.
+options it shows only as text — they are drawn here in the same style:
+
+<p align="center">
+  <img src="docs/drawn-icons.png" alt="The icons drawn for this project: the eight views, Accept, Cancel, Solid, Surface, Thin, New, Add, Remove, Intersect, Blind, Up to next and Through all">
+</p>
+
+Accept and Cancel keep Onshape's green and red at full strength; everything else
+is dimmed until it is the running tool or a ticked option.
 
 ### Keyboard layouts
 
@@ -218,6 +233,13 @@ layout does matter.
 * **Onshape can change its page at any time.** Everything here rests on its
   `command-id` and `data-parameter-id` attributes. They have looked deliberate and
   stable, but they are not a published interface.
+
+## Privacy
+
+The extension reads only the structure of Onshape's interface — which toolbar
+buttons there are, which is running, the open dialog's options and the toolbar's
+icons — and sends it only to the plugin on the same computer. It does not read your
+models or documents, and nothing leaves the machine. See [PRIVACY.md](PRIVACY.md).
 
 ## Development
 
@@ -254,6 +276,11 @@ OnshapePlugin/src/
 extension/
   background.js             service worker: relays between the plugin and the tabs
   content.js                reads the toolbar and dialogs, presses buttons
+  icon.svg                  the extension's icon, rendered into icons/
+install.sh                  the one-line installer
+dist/                       the release files
+docs/                       the README's pictures
+store/                      the Chrome Web Store listing: texts, images, package
 tools/                      generators, see below
 ```
 
@@ -277,10 +304,16 @@ dialog changes, and the plugin pings every 20 s to keep the service worker alive
 ### Regenerating the assets
 
 ```bash
-python3 tools/make_profiles.py       # package/profiles/DefaultProfile7*.lp5
-python3 tools/make_option_icons.py   # Icons/mx-opt-*.svg
-tools/make_dist.sh                   # dist/Onshape.lplug4 and dist/onshape-mx-bridge.zip
+python3 tools/make_profiles.py         # package/profiles/DefaultProfile7*.lp5
+python3 tools/make_option_icons.py     # Icons/mx-opt-*.svg
+tools/make_dist.sh                     # dist/*, and store/extension-webstore.zip
+python3 tools/make_store_assets.py     # store/*.png
+python3 tools/make_readme_graphics.py  # docs/banner.png, *.svg, drawn-icons.png
 ```
+
+The last two need Pillow and `rsvg-convert` (Homebrew `librsvg`). After changing
+`extension/icon.svg`, render its sizes with
+`rsvg-convert -w N -h N extension/icon.svg -o extension/icons/iconN.png`.
 
 ## Notes from reverse-engineering the SDK
 
@@ -340,6 +373,8 @@ does — `input`, `change`, `blur` — and never with Enter.
 ## Licence
 
 **MIT** — see [LICENSE](LICENSE). [NOTICE.md](NOTICE.md) covers Onshape's icons and
-logo.
+logo. Every picture in `docs/` and `store/` is original, except the keypad
+screenshot — on its own and in the banner and store images — which shows Onshape's
+icons as the keys draw them.
 
 Not affiliated with PTC, Onshape or Logitech.
