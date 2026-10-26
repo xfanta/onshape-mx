@@ -24,7 +24,7 @@ MX Creative Console  ->  Logi Plugin Service  ->  Onshape plugin (C#)
                                                       |
                                         ws://127.0.0.1:47810 (JSON)
                                                       |
-                                    Onshape MX Bridge (Chrome extension)
+                             MX Console Bridge for Onshape (Chrome extension)
                                                       |
                                       content script on cad.onshape.com
 ```

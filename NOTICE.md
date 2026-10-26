@@ -17,7 +17,8 @@ showing the keypad as the plugin draws it.
 
 `OnshapePlugin/src/package/metadata/Icon256x256.png` is the Onshape logo, taken
 from the app Chrome creates for cad.onshape.com and cropped to fill its canvas.
-`extension/icons/` holds the same logo scaled down for the Chrome extension.
+The Chrome extension's icon (`extension/icon.svg`) is original: the MX Creative
+Keypad's outline on a gradient of Onshape's green, there to say which app it is for.
 Onshape is a trademark of PTC Inc.; the logo is used here only to identify which
 application this plugin drives.
 

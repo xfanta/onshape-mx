@@ -5,6 +5,7 @@
 # Builds the two release files into dist/:
 #   Onshape.lplug4          the Options+ plugin (Release build, packed and verified)
 #   onshape-mx-bridge.zip   the Chrome extension, to unzip and load unpacked
+# and store/extension-webstore.zip, the same extension for the Chrome Web Store.
 #
 # Note: the Release build recreates OnshapePlugin.link in the Plugins folder, like
 # every build. Delete it before testing an installed .lplug4.
@@ -29,6 +30,11 @@ rm -f "$ROOT/OnshapePlugin/bin/Release/bin/OnshapePlugin.pdb"
 logiplugintool pack "$ROOT/OnshapePlugin/bin/Release" "$DIST/Onshape.lplug4"
 logiplugintool verify "$DIST/Onshape.lplug4"
 
-(cd "$ROOT" && zip -q -r -X "$DIST/onshape-mx-bridge.zip" extension -x '*.DS_Store')
+(cd "$ROOT" && zip -q -r -X "$DIST/onshape-mx-bridge.zip" extension -x '*.DS_Store' 'extension/icon.svg')
+
+# The Chrome Web Store wants manifest.json at the root of the zip.
+rm -f "$ROOT/store/extension-webstore.zip"
+mkdir -p "$ROOT/store"
+(cd "$ROOT/extension" && zip -q -r -X "$ROOT/store/extension-webstore.zip" . -x '*.DS_Store' 'icon.svg')
 
 ls -l "$DIST"

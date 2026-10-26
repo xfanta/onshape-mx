@@ -103,7 +103,7 @@ cat <<EOF
     1. switch on "Developer mode" (top right),
     2. click "Load unpacked",
     3. press Cmd+Shift+G, paste with Cmd+V - the folder is on the clipboard - and choose it.
-  Updating later? Click the reload arrow on "Onshape MX Bridge" instead.
+  Updating later? Click the reload arrow on "MX Console Bridge for Onshape" instead.
 EOF
 
 say "3/3  Onshape as a Chrome app"

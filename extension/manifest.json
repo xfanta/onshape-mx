@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Onshape MX Bridge",
+  "name": "MX Console Bridge for Onshape",
+  "short_name": "MX Bridge",
   "version": "0.1.0",
-  "description": "Lets the Onshape plugin for the Logitech MX Creative Console click Onshape's toolbar and see which tools are active.",
+  "description": "Lets the Logitech MX Creative Console drive Onshape: presses toolbar tools and follows sketches and feature dialogs.",
+  "homepage_url": "https://github.com/xfanta/onshape-mx",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
