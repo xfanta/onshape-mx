@@ -109,8 +109,8 @@ def promo_small():
     img.paste(mark, (30, 65), mark)
 
     draw = ImageDraw.Draw(img)
-    draw.text((196, 96), "MX Console", font=font(34, bold=True), fill=WHITE)
-    draw.text((196, 136), "Bridge for Onshape", font=font(26), fill=WHITE)
+    draw.text((181, 96), "MX Console", font=font(34, bold=True), fill=WHITE)
+    draw.text((181, 136), "Bridge for Onshape", font=font(26), fill=WHITE)
     img.save(OUT / "promo-small.png")
 
 
