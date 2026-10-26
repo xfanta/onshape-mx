@@ -6,6 +6,8 @@
 
   screenshot-1.png   1280x800, the keypad as Options+ shows it, with the pitch
   promo-small.png    440x280, the small promotional tile
+  icon-128.png       128x128 store icon: the artwork at 96x96 with 16 px of
+                     transparent margin, as the store's image guidelines ask
 
 Needs Pillow and rsvg-convert (Homebrew librsvg). The keypad picture is
 docs/keypad.png, a screenshot of Logi Options+; the icon is extension/icon.svg.
@@ -114,11 +116,22 @@ def promo_small():
     img.save(OUT / "promo-small.png")
 
 
+def store_icon():
+    with tempfile.NamedTemporaryFile(suffix=".png") as f:
+        subprocess.run(["rsvg-convert", "-w", "96", "-h", "96",
+                        str(ROOT / "extension" / "icon.svg"), "-o", f.name], check=True)
+        art = Image.open(f.name).convert("RGBA")
+        img = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+        img.paste(art, (16, 16), art)
+        img.save(OUT / "icon-128.png")
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     screenshot()
     promo_small()
-    print("wrote store/screenshot-1.png and store/promo-small.png")
+    store_icon()
+    print("wrote store/screenshot-1.png, store/promo-small.png and store/icon-128.png")
 
 
 if __name__ == "__main__":
