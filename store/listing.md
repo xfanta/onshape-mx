@@ -40,6 +40,7 @@ Open source (MIT). Not affiliated with PTC, Onshape or Logitech.
 * Store icon: `store/icon-128.png` (96×96 artwork with a 16 px transparent margin)
 * Screenshot: `store/screenshot-1.png` (1280×800)
 * Small promo tile: `store/promo-small.png` (440×280)
+* Marquee promo tile: `store/promo-marquee.png` (1400×560, no alpha)
 
 **Additional fields**
 

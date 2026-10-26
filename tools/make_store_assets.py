@@ -6,6 +6,7 @@
 
   screenshot-1.png   1280x800, the keypad as Options+ shows it, with the pitch
   promo-small.png    440x280, the small promotional tile
+  promo-marquee.png  1400x560, the marquee tile: the pitch and the keypad
   icon-128.png       128x128 store icon: the artwork at 96x96 with 16 px of
                      transparent margin, as the store's image guidelines ask
 
@@ -116,6 +117,68 @@ def promo_small():
     img.save(OUT / "promo-small.png")
 
 
+def keypad_cutout():
+    """docs/keypad.png without its window background, so it can stand on the gradient.
+
+    The screenshot is the keypad on Options+'s #1a1a1a. Pixels at that colour go
+    transparent, and the ones close to it fade, which keeps the device's rounded
+    edge smooth instead of leaving a dark fringe.
+    """
+    img = Image.open(ROOT / "docs" / "keypad.png").convert("RGBA")
+    px = img.load()
+    bg = px[2, 2][:3]
+    w, h = img.size
+
+    # Flood from the corners so the dark key faces inside the device stay opaque.
+    seen = set()
+    stack = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+    while stack:
+        x, y = stack.pop()
+        if (x, y) in seen or not (0 <= x < w and 0 <= y < h):
+            continue
+        seen.add((x, y))
+        r, g, b, _ = px[x, y]
+        distance = max(abs(r - bg[0]), abs(g - bg[1]), abs(b - bg[2]))
+        if distance > 18:
+            continue
+        px[x, y] = (r, g, b, max(0, min(255, (distance - 4) * 18)))
+        stack += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+
+    return img.crop(img.getchannel("A").getbbox())
+
+
+def promo_marquee():
+    img = gradient((1400, 560)).convert("RGBA")
+
+    keypad = keypad_cutout()
+    keypad.thumbnail((480, 470))
+    left = 1400 - keypad.width - 100
+    img.alpha_composite(keypad, (left, (560 - keypad.height) // 2))
+
+    # Text keeps 60 px clear of the keypad.
+    draw = ImageDraw.Draw(img)
+    x, width = 100, left - 60 - 100
+    lines = [(line, font(50, bold=True), WHITE, 62)
+             for line in ["Every Onshape tool", "on your MX Creative Console"]]
+    lines += [(line, font(27), (255, 255, 255, 230), 38)
+              for line in wrap(draw, "The keypad follows your sketches, features and dialogs.",
+                               font(27), width)]
+    caption = ("MX Console Bridge for Onshape", font(28), (255, 255, 255, 220), 56)
+
+    block = caption[3] + sum(step for *_, step in lines) + 20
+    y = (560 - block) // 2
+    for text, fnt, fill, step in [caption] + lines[:2]:
+        draw.text((x, y), text, font=fnt, fill=fill)
+        y += step
+    y += 20
+    for text, fnt, fill, step in lines[2:]:
+        draw.text((x, y), text, font=fnt, fill=fill)
+        y += step
+
+    # The store takes no alpha here.
+    img.convert("RGB").save(OUT / "promo-marquee.png")
+
+
 def store_icon():
     with tempfile.NamedTemporaryFile(suffix=".png") as f:
         subprocess.run(["rsvg-convert", "-w", "96", "-h", "96",
@@ -130,8 +193,9 @@ def main():
     OUT.mkdir(exist_ok=True)
     screenshot()
     promo_small()
+    promo_marquee()
     store_icon()
-    print("wrote store/screenshot-1.png, store/promo-small.png and store/icon-128.png")
+    print("wrote screenshot-1, promo-small, promo-marquee and icon-128 in store/")
 
 
 if __name__ == "__main__":
